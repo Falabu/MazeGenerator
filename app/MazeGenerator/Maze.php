@@ -56,6 +56,7 @@ class Maze
 
         $position_keys = array();
 
+        //Decide which direction is free to go
         foreach ($cardinal_directions as $key => $direction) {
             $next = $this->current_cell->getPosition()->addPoint($direction);
             $next_cell = $this->selectCell($next);
@@ -76,6 +77,7 @@ class Maze
             }
         }
 
+        //If there is possible direction we draw the maze
         if (count($position_keys) > 0) {
             $random_key = $position_keys[array_rand($position_keys)];
             $selected_direction = $cardinal_directions[$random_key];
@@ -106,7 +108,7 @@ class Maze
         }
     }
 
-    public function createDoors()
+    public function createDoorways()
     {
         foreach ($this->rooms as $room) {
             $room_boundaries = $room->getBoundaries();
@@ -115,7 +117,7 @@ class Maze
             do {
                 $random_direct = ['W', 'E', 'S', 'N'];
                 $door_count = 0;
-                
+
                 while ($door_count < 2) {
                     $good_direction = false;
                     shuffle($random_direct);
@@ -123,14 +125,14 @@ class Maze
 
                     $random_key = array_rand($room_boundaries[$selected]);
 
-                    $cordinate = $room_boundaries[$selected][$random_key]['coordinate'] ?? null;
+                    $coordinate = $room_boundaries[$selected][$random_key]['coordinate'] ?? null;
                     $direction = $room_boundaries[$selected][$random_key]['direction'] ?? null;
                     $distance = 0;
 
-                    //Is valid direction for the maze
-                    $new_cordinate = new MazePoint2D($cordinate->x, $cordinate->y);
+                    //Decide which direction have reachable maze floor
+                    $new_coordinate = new MazePoint2D($coordinate->x, $coordinate->y);
                     for ($i = 0; $i <= MazePoint2D::$step_length; $i++) {
-                        $next_pos = $new_cordinate->multiplyAdd($direction->getNormal());
+                        $next_pos = $new_coordinate->multiplyAdd($direction->getNormal());
                         $cell = $this->selectCell($next_pos);
 
                         if ($cell && $cell->isInMaze()) {
@@ -138,9 +140,10 @@ class Maze
                             $distance = $i;
                         }
                     }
-                    //Draw the door
+
+                    //Draw the doorway
                     if ($good_direction) {
-                        $gap_from_pos = $cordinate;
+                        $gap_from_pos = $coordinate;
 
                         for ($j = 0; $j < $distance; $j++) {
                             $gap_position = $gap_from_pos->multiplyAdd($direction->getNormal());
@@ -160,8 +163,7 @@ class Maze
         }
     }
 
-    public
-    function moveAwhile()
+    public function moveAwhile()
     {
         for ($i = 0; $i < $this->bound_x / 5; $i++) {
             $this->rooms[] = $this->createRoom();
@@ -171,11 +173,10 @@ class Maze
             $this->generateMaze();
         }
 
-        $this->createDoors();
+        $this->createDoorways();
     }
 
-    private
-    function selectCell(MazePoint2D $point): ?MazeCell
+    private function selectCell(MazePoint2D $point): ?MazeCell
     {
         $maze_cell = null;
 
@@ -186,11 +187,10 @@ class Maze
         return $maze_cell;
     }
 
-    private
-    function createRoom(): ?MazeRoom
+    private function createRoom(): ?MazeRoom
     {
         $room = null;
-        $room_min_distance = 4;
+        $room_min_distance = 2;
 
         $room_min_size_x = $this->bound_x / 10;
         $room_max_size_x = $this->bound_x / 6;
@@ -208,7 +208,8 @@ class Maze
 
             $pos_x = random_int(0 + $size_x, $this->bound_x - $size_x);
             $pos_y = random_int(0 + $size_y, $this->bound_y - $size_y);
-            //
+
+            //Decide if the spot is occupied by other room
             for ($i = -$room_min_distance; $i < $size_x + $room_min_distance; $i++) {
                 for ($j = -$room_min_distance; $j < $size_y + $room_min_distance; $j++) {
                     $point = new MazePoint2D($i + $pos_x, $j + $pos_y);
@@ -219,7 +220,7 @@ class Maze
                     }
                 }
             }
-
+            //If spot is free draw the room
             if ($occupied == false) {
                 $room = new MazeRoom($size_x, $size_y, new MazePoint2D($pos_x, $pos_y));
 
@@ -240,8 +241,7 @@ class Maze
     }
 
 
-    public
-    function showMaze()
+    public function showMaze()
     {
         echo "<body style='background-color: black'>";
         echo 'Maze<br>';
