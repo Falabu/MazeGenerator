@@ -16,11 +16,25 @@ class MazeCell
 
     private $room_id;
 
+    private $is_end;
+
+    private $deleted;
+
     public function __construct()
     {
         $this->in_maze = false;
         $this->is_room = false;
         $this->is_door = false;
+        $this->is_end = false;
+        $this->deleted = false;
+    }
+
+    public function setEnd(){
+        $this->is_end = true;
+    }
+
+    public function isEnd(){
+        return $this->is_end;
     }
 
     public function setRoom(MazeRoom $mazeRoom)
@@ -31,6 +45,19 @@ class MazeCell
 
     public function isDoor(){
         return $this->is_door;
+    }
+
+    public function removeFromMaze(){
+        $this->in_maze = false;
+        $this->deleted = true;
+    }
+
+    public function deleted(){
+        return $this->deleted;
+    }
+
+    public function removeFromEnd(){
+        $this->is_end = false;
     }
 
     public function isRoom()
